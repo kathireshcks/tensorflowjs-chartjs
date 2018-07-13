@@ -1,0 +1,80 @@
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.12.0"> </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+</head>
+<body>
+    x:<input type="number" id="x" />
+    y:<input type="number" id="y" />
+    <input type="button" id="append" value="submit" /> 
+    <div style="padding:40px"></div>
+     <canvas id="myChart"></canvas>
+    </div>
+    <script>
+        var xs=[]
+        var ys=[]
+        
+
+        
+        document.getElementById('x').value=1;
+        
+        const model=tf.sequential();
+        model.add(tf.layers.leakyReLU({units:128,inputShape:[1]}));
+        model.add(tf.layers.leakyReLU({units:128,inputShape:[128]}));
+        model.add(tf.layers.dense({units:1,inputShape:[128]}));
+        model.compile({loss:"meanSquaredError",optimizer:"adam"})
+
+        document.getElementById('append').onclick=function(){
+        
+            const model=tf.sequential();
+            model.add(tf.layers.dense({units:128,inputShape:[1]}));
+            model.add(tf.layers.dense({units:128,inputShape:[128]}));
+            model.add(tf.layers.dense({units:1,inputShape:[128]}));
+    
+            const optimizer=tf.train.adam(0.001);
+
+            model.compile({loss:"meanSquaredError",optimizer:optimizer})
+
+
+            var x=document.getElementById('x').value;
+            var y=document.getElementById('y').value;
+
+            xs.push(x);
+            ys.push(y);
+
+            document.getElementById('x').value=parseInt(x)+1;
+            
+            model.fit(tf.tensor(xs),tf.tensor(ys),{epochs:25}).then(() =>{
+
+                bestfit=model.predict(tf.tensor2d(xs,[xs.length,1])).dataSync();
+            var ctx=document.getElementById("myChart").getContext('2d');
+
+            var myChart=new Chart(ctx,{
+                type:'line',
+                options:{scales:{yAxes: [{tickes: {beginAtZero: true}}]}},
+                data:{
+                    labels: xs,
+                    datasets:[
+                        {
+                            label: 'original Data',
+                            data: ys,
+                            borderWidth: 1,
+
+                        },
+                        {
+                            label: 'Bestfit',
+                            data: bestfit,
+                            borderWidth: 1,
+                            borderColor: "#ff0000",
+                            backgroundColor: "rgba(1,1,1,0)",
+
+                        }
+                    ]
+                }
+            });
+            });
+        }
+
+    </script>
+</body>
+</html>
